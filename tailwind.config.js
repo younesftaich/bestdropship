@@ -7,7 +7,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'youssef':'#E2689A',
+        'youssef':'#ed8936',
       }
     },
   },
