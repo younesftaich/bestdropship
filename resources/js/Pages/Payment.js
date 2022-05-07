@@ -1,33 +1,75 @@
 import React, { useEffect, useState } from 'react';
-import { Icon } from '@iconify/react';
 import { PayPalButton } from "react-paypal-button-v2";
+import { Head } from '@inertiajs/inertia-react'
+
 
 import axios from 'axios';
 import queryString from 'query-string'
 const Checkout2 = () => {
+
+    
+       
   
     const parsed = queryString.parse(location.search);
-    const uniqueid = parsed.uniqueid;
+    const subid = parsed.subid;
     const [packname,setPackName] = useState("")
+    const [paypalready,setpaypalready] = useState(false)
+    const [realtoken,settoken] = useState(null)
+    const [coinbasetoken,setCoinBase] = useState("")
+    const [mycurrency,setCurrency] = useState("")
     const [lastprice,setLastPrice] = useState(11.99)
-    const realtoken = "AbWGovnz8ZdhbWX1m4qhhZcnwo4ERd4xdSKNY-zx2oGT9i7fXOap17y48ffeSlj7S471dYHhI2AX-3o4"
+    const [lastprice2,setLastPrice2] = useState(11.99)
+    //const realtoken = gettoken()
     useEffect(() => {
-        if ( uniqueid != null){
+        if ( subid != null){
+           
             (async () => {
-                let checkresult =  axios.get('/api/subunique/'+uniqueid).then(response => response.data);   
+          
+                let checkresult =  axios.get('/api/subunique/'+subid).then(response => response.data);   
                 checkresult.then(function(result) {
+                    settoken("AT_HbZuEJeWegk8ljna1YQgkZoyuVCy_qusrpndC5C4TFvBWMZjzfMZpUaJp-I3LoVhTlKg3uTae3Ino")
+
+                
+                    setCoinBase(result.coinbase)
+                    setCurrency(result.currency)
+
+                    // if (result.currency == "GBP"){
+                    //   //  console.log("GBP")
+                    // }
+                    // else if (result.currency == "USD"){
+                    //   //  console.log("USD")
+
+                    //   window.location.href = '/usd/payment?subid='+subid;
+
+
+                    // }
+                    // else if (result.currency == "EUR"){
+                    //   //  console.log("EUR")
+                    //   window.location.href = '/eur/payment?subid='+subid;
+
+                    // }
                     setPackName(result.packagename)
-                    setLastPrice(result.total)
+                    setLastPrice(result.packageprice)
+                    setLastPrice2(result.total)
+
     
                     })
                      })  ();
         }   
-      }, [uniqueid]);
-
+      }, [subid]);
+      
+    useEffect(() => {
+        if ( realtoken != null && mycurrency != ""){
+            setpaypalready(true)
+        }
+        
+      }, [realtoken,mycurrency]);
     
    return (
     <div className="font-Poppins font-semibold min-h-screen bg-indigo-100">
- 
+  <Head>
+<title>Checkout</title>
+</Head>
     <div className=" bg-indigo-100   mx-auto pt-8 px-4 sm:px-6 lg:px-8 pb-6">
 
 
@@ -35,7 +77,7 @@ const Checkout2 = () => {
 
 
         <div id="fill-details" className="flex space-x-4 items-center py-2">
-            <span className="font-bold md:text-2xl text-center text-xl">Complete Your Order</span>
+            <span className="font-bold md:text-2xl text-center text-xl">Complete Your Order :</span>
 
         </div>
 
@@ -60,17 +102,21 @@ const Checkout2 = () => {
          
             </div>
 
-            <div className="flex bg-indigo-50 rounded-md py-3 px-5"><span className="flex-1"></span><span className="mr-7">Total</span><span className="mr-7" ></span><span>£ {lastprice}</span></div>
+            <div className="flex bg-indigo-50 rounded-md py-3 px-5"><span className="flex-1"></span><span className="mr-7">Total</span><span className="mr-7" ></span><span>{lastprice}</span></div>
 
 
             </div>
 
+
+    
+
+{ paypalready ? (
                 <PayPalButton
-       amount = {lastprice}
+       amount = {lastprice2}
       shippingPreference="NO_SHIPPING"
-       currency="GBP"
+       currency={mycurrency}
        options={{
-        currency: "GBP",
+        currency: mycurrency,
          clientId: realtoken
        }}
        
@@ -83,14 +129,22 @@ const Checkout2 = () => {
 
 
 onSuccess={(details, data) => {
+    
+    let checkresult =  axios.get('/api/paidsub/'+subid).then(response => response.data);   
+    checkresult.then(function(result) {
+     
+        window.location.href = "/completed";
 
-router.push('/completed')
+    })
+
+    
 
   
       
 
 }}
 />
+) : ( <h1>Loading ...</h1>)}
                   
 
 <div>
